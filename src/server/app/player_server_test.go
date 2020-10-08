@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"sort"
 	"testing"
 )
 
@@ -174,6 +175,15 @@ func TestRecordingWinsAndRetrievingThem(t *testing.T) {
 		assertLeague(t, got, want)
 	})
 
+	t.Run("works with an empty file", func(t *testing.T) {
+		database, cleanDatabase := createTempFile(t, "")
+		defer cleanDatabase()
+
+		_, err := NewFileSystemPlayerStore(database)
+
+		assertNoError(t, err)
+	})
+
 }
 
 // func (f *FileSystemPlayerStore) GetLeague() []Player {
@@ -182,6 +192,9 @@ func TestRecordingWinsAndRetrievingThem(t *testing.T) {
 // }
 
 func (s *StubPlayerStore) GetLeague() League {
+	sort.Slice(s.league, func(i, j int) bool {
+		return s.league[i].Wins > s.league[j].Wins
+	})
 	return s.league
 }
 
