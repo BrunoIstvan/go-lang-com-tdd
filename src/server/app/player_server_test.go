@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -135,7 +136,17 @@ func newPostWinRequest(name string) *http.Request {
 
 func TestRecordingWinsAndRetrievingThem(t *testing.T) {
 
-	store := NewInMemoryPlayerStore()
+	database, cleanDatabase := createTempFile(t, `[]`)
+	defer cleanDatabase()
+
+	// store := &FileSystemPlayerStore{database, league}
+	store, err := NewFileSystemPlayerStore(database)
+
+	if err != nil {
+		log.Fatalf("problem creating file system player store, %v ", err)
+	}
+
+	// store := NewInMemoryPlayerStore()
 	server := NewPlayerServer(store)
 	player := "Pepper"
 
